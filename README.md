@@ -21,21 +21,24 @@ Media Distributors, Inc. manages film and music sales through separate systems. 
 ---
 
 ## Project Structure
-├── DB ETL 
-│ ├── createDB.PractI.AdhikariT.R 
-│ ├── loadDB.PractI.AdhikariT.R 
-│ ├── testDBLoading.PractI.AdhikariT.R 
-│ ├── configBusinessLogic.PractI.AdhikariT.R 
-│ ├── RevenueReport.PractI.AdhikariT.Rmd 
-│ ├── designDBSchema.PractI.AdhikariT.Rmd 
-│ └── deleteDB.PractI.AdhikariT.R 
-├── DatawarehouseETL 
-│ ├── createStarSchema.PractII.AdhikariT.R 
-│ ├── loadAnalyticsDB.PractII.AdhikariT.R 
-│ ├── BusinessAnalysis.PractII.AdhikariT.Rmd 
-│ ├── BusinessAnalysis.PractII.AdhikariT.html 
-│ └── deleteDB.PractII.AdhikariT.R 
-└── README.md
+
+- **DB ETL**
+  - `createDB.PractI.AdhikariT.R`
+  - `loadDB.PractI.AdhikariT.R`
+  - `testDBLoading.PractI.AdhikariT.R`
+  - `configBusinessLogic.PractI.AdhikariT.R`
+  - `RevenueReport.PractI.AdhikariT.Rmd`
+  - `designDBSchema.PractI.AdhikariT.Rmd`
+  - `deleteDB.PractI.AdhikariT.R`
+
+- **Datawarehouse ETL**
+  - `createStarSchema.PractII.AdhikariT.R`
+  - `loadAnalyticsDB.PractII.AdhikariT.R`
+  - `BusinessAnalysis.PractII.AdhikariT.Rmd`
+  - `BusinessAnalysis.PractII.AdhikariT.html`
+  - `deleteDB.PractII.AdhikariT.R`
+
+- `README.md`
 
 
 ---
