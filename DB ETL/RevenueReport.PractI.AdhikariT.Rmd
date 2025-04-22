@@ -1,0 +1,202 @@
+---
+title: "Analyze Sales"
+author: "Tejas Adhikari"
+date: "Spring Semester 2025"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+  html_notebook: default
+subtitle: "CS5200 Practicum I"
+---
+
+
+```{r echo=F, include=F}
+
+# Install packages --------------------------------------------------------
+
+# # Install RMySQL package if not installed already
+# # This makes the code portable
+# if("RMySQL" %in% rownames(installed.packages()) == FALSE) {
+#   install.packages("RMySQL")
+# }
+# Load Library
+library(RMySQL)
+
+
+# # Install DBI package if not installed already
+# # This makes the code portable
+# if("DBI" %in% rownames(installed.packages()) == FALSE) {
+#   install.packages("DBI")
+# }
+library(DBI)
+
+# # Install dplyr package if not installed already
+# # This makes the code portable
+# if("dplyr" %in% rownames(installed.packages()) == FALSE) {
+#   install.packages("dplyr")
+# }
+library(dplyr)
+# 
+# # Install kableExtra package if not installed already
+# # This makes the code portable
+# if("kableExtra" %in% rownames(installed.packages()) == FALSE) {
+#   install.packages("kableExtra")
+# }
+library(kableExtra)
+
+# # Install tinytex package if not installed already
+# # This makes the code portable
+# if("tinytex" %in% rownames(installed.packages()) == FALSE) {
+#   install.packages("tinytex")
+# }
+library(tinytex)
+
+# Connect to MySQL DB 
+# Set up connection parameters.
+db_user <- ''
+db_password <- ''
+db_name <- ''
+db_host <- ''
+db_port <- 16950  
+  
+# Connect to MySQL DB
+conn <- dbConnect(RMySQL::MySQL(), 
+                  user = db_user, 
+                  password = db_password, 
+                  dbname = db_name, 
+                  host = db_host, 
+                  port = db_port)
+  
+```
+
+
+
+## Analysis by Restaurant
+
+
+
+```{r echo=F, warning=F, results='asis'}
+
+# Generate the sql query to join Visits, Restaurants, FoodOrders, AlcohlOrders
+# and Customers tables -> group by restaurant name.
+#  Select all the necessary columns and perform the calculations.
+# COUNT for Visits, customers and loyalty member. Since a customer might
+# visit several times we need distinct for the latter two columns.
+# Sum for the food and alcohol bills.
+sql <- "
+        SELECT 
+            r.RestaurantName AS Restaurant,
+            COUNT(v.VisitID) AS TotalVisits,
+            COUNT(DISTINCT v.CustomerID) AS UniqueCustomers,
+            COUNT(DISTINCT CASE WHEN c.LoyaltyMember = 1 THEN c.CustomerID END) AS LoyaltyCustomers,
+            SUM(f.FoodBill) AS TotalFoodSpent,
+            SUM(a.AlcoholBill) AS TotalAlcoholSpent
+        FROM Visits v
+        INNER JOIN Restaurants r ON v.RestaurantID = r.RestaurantID
+        LEFT JOIN FoodOrders f ON v.VisitID = f.FoodOrderID
+        LEFT JOIN AlcoholOrders a ON v.VisitID = a.AlcoholOrderID
+        LEFT JOIN Customers c ON v.CustomerID = c.CustomerID
+        GROUP BY r.RestaurantName
+        ORDER BY r.RestaurantName;"
+
+# Fetch results from the database
+restaurant_results <- dbGetQuery(conn, sql)
+
+
+# Create and display a formatted table using kableExtra
+restaurant_results %>%
+  kbl(col.names = c("Restaurant", "Total Visits", "Unique Customers", "Loyalty Customers",
+                    "Total Food Spent", "Total Alcohol Spent"),
+      caption = "Analysis by Restaurants",
+      align = "c") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+                latex_options = c("scale_down", "HOLD_position"), # Scales table to fit within margins
+                full_width = FALSE) %>%
+  row_spec(0, bold = TRUE, font_size = 14) %>%  # Header row styling
+  column_spec(1, bold = TRUE)                  # Restaurant names styled bold
+
+
+```
+
+
+
+## Analysis by Year
+
+```{r echo=F, warning=F, results='asis'}
+# SQL query for yearly analysis
+sql <- "
+          SELECT 
+              YEAR(v.VisitDate) AS Year,
+              SUM(o.TotalBill) AS TotalRevenue,
+              AVG(o.TotalBill) AS AvgPerPartySpent,
+              AVG(v.PartySize) AS AvgPartySize,
+              AVG(o.TotalBill / v.PartySize) AS AvgPerPersonSpent
+          FROM Orders o
+          INNER JOIN Visits v ON o.OrderID = v.OrderID
+          GROUP BY YEAR(v.VisitDate)
+          ORDER BY YEAR(v.VisitDate);
+        "
+
+# Execute the query and fetch results
+yearly_results <- dbGetQuery(conn, sql)
+
+# Format the result into a table using kableExtra
+yearly_results %>%
+  kbl(col.names = c("Year", "Total Revenue", "Average Per Party Spent", "Average Party Size", "Avg Per Person Spent"),
+      caption = "Analysis by Year",
+      digits = 2, # Format numeric values to 2 decimal places
+      align = "c") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+                latex_options = c("scale_down", "HOLD_position"), # Scales table to fit within margins
+                full_width = FALSE) %>%
+  row_spec(0, bold = TRUE, font_size = 14)  # Header styling
+```
+
+
+
+
+## Trend by Year
+
+
+
+
+```{r fig.align='center', fig.width=9, fig.height=6, echo=F, warning=F, results='asis'}
+# Extract year and total revenue from the dataframe generated in previous chunk.
+years <- yearly_results$Year
+total_revenue <- yearly_results$TotalRevenue
+
+# Adjust the margins to give more space for the plot
+par(mar=c(4, 4.5, 1, 1))
+
+# Create the line chart
+plot(years, total_revenue, 
+     type = "o",                            # Line plot with points
+     col = "#228B22",                          # Line and point color
+     xlab = "Year",                         # X-axis label
+     ylab = "Total Revenue",                # Y-axis label
+     main = "Year vs Total Revenue trend",  # Chart title
+     lwd = 2,                               # Line width
+     pch = 16)                              # Point character (solid dots)
+
+# Add a legend to the plot
+legend("topleft", 
+       legend = "Total Revenue", 
+       col = "#228B22", 
+       lwd = 2, 
+       pch = 16)
+
+# Annotate data points with data labels
+text(years, total_revenue, 
+     labels = format(round(total_revenue, 2), big.mark=","), # Round revenue to 2 decimals
+     pos = 3,                          # Position above the point
+     cex = 0.8,                        # Text size
+     col = "#8FBC8F")
+
+
+```
+
+```{r echo=F, include=F}
+# Disconnect from DB
+dbDisconnect(conn)
+```

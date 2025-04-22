@@ -1,0 +1,117 @@
+---
+title: "Design DB Schema"
+author: "Tejas Adhikari"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+#### Part B / Design Normalized Database
+
+##### 1. For the relation represented by all of the columns in the CSV file, define all functional dependencies and list them.
+
+1. VisitID uniquely determines the collective information about a visit:
+$$ VisitID \rightarrow \{ Restaurant, VisitDate, MealType, PartySize, Genders, WaitTime,$$
+                          $$LoyaltyMember, FoodBill, TipAmount, DiscountApplied, PaymentMethod, \\$$
+                          $$orderedAlcohol, AlcoholBill \} \\ \\ $$
+
+
+       
+
+
+2. ServerEmpID uniquely determines the collective information about a server except EndDateHired:
+$$ ServerEmpID \rightarrow \{ServerName, StartDateHired, HourlyRate\}  \\ \\ $$
+
+
+3. CustomerPhone uniquely determines the customer and their loyalty status
+$$ CustomerPhone \rightarrow \{ CustomerName, CustomerEmail, LoyaltyMember \} \\ \\ $$
+
+
+4. CustomerPhone uniquely determines the customer and their loyalty status
+$$ CustomerEmail \rightarrow \{ CustomerName, CustomerPhone, LoyaltyMember \} \\ \\ $$
+
+5. A visit to a specific restaurant at a specific date and time uniquely identifies the visit
+$$ \{Restaurant, VisitDate, VisitTime \} \rightarrow VisitID \\ \\ $$
+
+
+
+6. Restaurant, ServerEmpID uniquely determine the ServerName
+$$ \{Restaurant, ServerEmpID\} → ServerName \\ \\$$
+
+
+7. CustomerName, CustomerPhone, VisitID uniquely determines the FoodBill, TipAmount, PaymentMethod separately
+$$ \{CustomerName, CustomerPhone, VisitID\} \rightarrow FoodBill, TipAmount, PaymentMethod \\ \\ \\ \\ \\ \\$$
+
+
+##### 2. Using the functional dependencies and the rules of normalization, decompose the relational from the CSV into several relations that all satisfy 3NF; give the relations reasonable names.
+
+###### Relations:
+
+1. Visits Table:
+$$ Visits(VisitID, RestaurantID, ServerEmpID, CustomerID, OrderID, PaymentID, VisitDate,\\$$
+                $$VisitTime, PartySize, Genders, WaitTime, TipAmount, DiscountApplied)  $$
+
+2. Restaurants  Table:
+$$ Restaurants(RestaurantID, RestaurantName)  $$
+
+3. Servers Table:
+$$ Servers(ServerEmpID, ServerName, HourlyRate, StartDateHired,$$
+$$ EndDateHired, ServerBirthDate, ServerTIN)  $$
+
+4. Customers Table:
+$$ Customers(CustomerID, CustomerName, CustomerPhone, CustomerEmail, LoyaltyMember)  $$
+
+5. Orders Table:
+$$ Orders(OrderID, VisitID, FoodOrderID, AlcoholOrderID, TotalBill)  $$
+6. FoodOrders Table:
+$$ Orders(FoodOrderID, OrderID, MealTypeID, FoodBill)  $$
+
+7. MealTypes Table:
+$$ MealTypes(MealTypeID, MealType)  $$
+8. AlcoholOrders Table:
+$$ AlcoholOrders(AlcoholOrderID, orderedAlcohol, AlcoholBill)  $$
+9. Payments Table:
+$$ Payments(PaymentID, PaymentMethod) \\ \\ \\ \\  $$
+
+##### Proving 3NF
+
+1. In the Visits Table, VisitID uniquely determines all the other attributes combined:
+$$ VisitID \rightarrow \{RestaurantID, ServerEmpID, CustomerID, OrderID, PaymentID, VisitDate,\\$$
+                $$VisitTime, PartySize, Genders, WaitTime, TipAmount, DiscountApplied\}  $$
+
+
+2. In the Restaurants Table RestaurantID uniquely determines the RestaurantName:
+$$ RestaurantID \rightarrow RestaurantName  $$
+3. In the Servers Table, ServerEmpID uniquely determines all the attributes:
+$$ ServerEmpID \rightarrow \{ServerName, HourlyRate, StartDateHired,$$
+$$ EndDateHired, ServerBirthDate, ServerTIN\}  $$
+
+4. In Customers Table, CustomerID uniquely identifies the other columns all thogether:
+$$ CustomerID \rightarrow \{CustomerName, CustomerPhone, CustomerEmail, LoyaltyMember\}  $$
+
+5. In Orders Table, OrderID uniquely identifies all the other columns together:
+$$ OrderID \rightarrow \{VisitID, FoodOrderID, AlcoholOrderID, TotalBill\}  $$
+
+6. In the FoodOrders Table, FoodOrderID uniquely identifies all the other columns together:
+$$ FoodOrderID \rightarrow \{OrderID, MealTypeID, FoodBill\}  $$
+
+7. In theMealTypes Table, MealTypeID uniquely identifies the MealType:
+$$ MealTypeID \rightarrow \{MealType\}  $$
+8. In the AlcoholOrders Table, AlcoholOrderID uniquely identifies all the other columns together:
+$$ AlcoholOrderID \rightarrow \{orderedAlcohol, AlcoholBill\}  $$
+
+9. In the Payments Table, PaymentID uniquely identifies the PaymentMethod:
+$$ PaymentID \rightarrow \{PaymentMethod\} \\ \\ \\ \\  $$
+
+##### 3. For the relations resulting from the normalization, create an ERD in the IE (Crow's Feet) notation. Add all attributes, attribute name, primary and foreign keys, data types, and entity descriptions. You may use any modeling tool of your choosing, e.g., LucidChart or mermaid. Embed the ERD into your document either an an embedded object, a rendered mermaid graphic, or an externally hosted image. If you render to HTML, then you must host any image on a server, but if you knit to PDF, then the image becomes embedded in the document
+
+
+###### :
+###### 1. We have a Visits table containing all the visits.
+###### 2. Restaurants, MealTypes, Payments Tables are made as Lookup tables.
+###### 3. Tables for Servers, Customers and Orders.
+###### 4. Orders table is related to FoodOrders and AlcoholOrders Tables.
+
+![ERD Diagram](images/Practicum-1.png)
+
